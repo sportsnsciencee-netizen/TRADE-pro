@@ -1,0 +1,6 @@
+{
+  "name": "OptiQuant - Options Portfolio Analytics & What-If Dashboard",
+  "description": "Professional quantitative options portfolio analytics, Black-Scholes pricing engine, dynamic multi-leg payoff graph, and stress-testing What-If target date/price simulator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
