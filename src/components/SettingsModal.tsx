@@ -63,7 +63,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       spotPrice: 25030.35,
       changePercent: 2.01,
       globalIV: 13.8,
-      interestRate: 6.5
+      interestRate: 6.5,
+      currency: '₹'
+    });
+    onClose();
+  };
+
+  const handleResetSpxDefaults = () => {
+    setSpot(5860.50);
+    setIv(14.5);
+    setR(4.8);
+    onChangeEnvironment({
+      ...environment,
+      symbol: 'SPX',
+      spotPrice: 5860.50,
+      changePercent: 0.75,
+      globalIV: 14.5,
+      interestRate: 4.8,
+      currency: '$'
     });
     onClose();
   };
@@ -220,13 +237,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
               {/* Action Buttons */}
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={handleResetDefaults}
-                  className="text-xs font-medium text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors cursor-pointer"
-                >
-                  <RefreshCw size={12} /> Reset NIFTY Defaults
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleResetDefaults}
+                    className="text-xs font-medium text-slate-500 hover:text-blue-700 flex items-center gap-1 transition-colors cursor-pointer"
+                    title="Load Indian NSE NIFTY 50 defaults (₹)"
+                  >
+                    <RefreshCw size={12} /> NIFTY (₹)
+                  </button>
+                  <span className="text-slate-300">|</span>
+                  <button
+                    type="button"
+                    onClick={handleResetSpxDefaults}
+                    className="text-xs font-medium text-slate-500 hover:text-emerald-700 flex items-center gap-1 transition-colors cursor-pointer"
+                    title="Load US S&P 500 Index defaults ($)"
+                  >
+                    <RefreshCw size={12} /> SPX ($)
+                  </button>
+                </div>
 
                 <div className="flex items-center gap-2">
                   <button

@@ -15,14 +15,30 @@ interface TradeLabHeaderProps {
   onSaveStrategy?: () => void;
 }
 
-const POPULAR_SYMBOLS = [
-  { symbol: 'NIFTY', spot: 25030.35, change: 2.01, lotSize: 50 },
-  { symbol: 'BANKNIFTY', spot: 52140.20, change: 1.45, lotSize: 15 },
-  { symbol: 'FINNIFTY', spot: 23980.50, change: 1.12, lotSize: 25 },
-  { symbol: 'MIDCPNIFTY', spot: 12850.10, change: 0.85, lotSize: 75 },
-  { symbol: 'TCS', spot: 4120.00, change: 0.95, lotSize: 175 },
-  { symbol: 'RELIANCE', spot: 2980.00, change: 1.60, lotSize: 250 },
-  { symbol: 'INFY', spot: 1845.50, change: -0.35, lotSize: 400 }
+export interface MarketSymbol {
+  symbol: string;
+  name?: string;
+  spot: number;
+  change: number;
+  lotSize: number;
+  currency: '₹' | '$';
+  market: 'NSE' | 'GLOBAL';
+}
+
+const POPULAR_SYMBOLS: MarketSymbol[] = [
+  // NSE (India)
+  { symbol: 'NIFTY', name: 'NIFTY 50 Index', spot: 25030.35, change: 2.01, lotSize: 50, currency: '₹', market: 'NSE' },
+  { symbol: 'BANKNIFTY', name: 'Nifty Bank Index', spot: 52140.20, change: 1.45, lotSize: 15, currency: '₹', market: 'NSE' },
+  { symbol: 'FINNIFTY', name: 'Nifty Financial Services', spot: 23980.50, change: 1.12, lotSize: 25, currency: '₹', market: 'NSE' },
+  { symbol: 'MIDCPNIFTY', name: 'Nifty Midcap Select', spot: 12850.10, change: 0.85, lotSize: 75, currency: '₹', market: 'NSE' },
+  { symbol: 'TCS', name: 'Tata Consultancy Services', spot: 4120.00, change: 0.95, lotSize: 175, currency: '₹', market: 'NSE' },
+  { symbol: 'RELIANCE', name: 'Reliance Industries', spot: 2980.00, change: 1.60, lotSize: 250, currency: '₹', market: 'NSE' },
+  { symbol: 'INFY', name: 'Infosys Ltd', spot: 1845.50, change: -0.35, lotSize: 400, currency: '₹', market: 'NSE' },
+  // Global / US Markets
+  { symbol: 'SPX', name: 'S&P 500 Index', spot: 5860.50, change: 0.75, lotSize: 100, currency: '$', market: 'GLOBAL' },
+  { symbol: 'NDX', name: 'Nasdaq 100 Index', spot: 20420.00, change: 1.15, lotSize: 100, currency: '$', market: 'GLOBAL' },
+  { symbol: 'AAPL', name: 'Apple Inc.', spot: 228.50, change: 0.60, lotSize: 100, currency: '$', market: 'GLOBAL' },
+  { symbol: 'NVDA', name: 'NVIDIA Corp.', spot: 142.20, change: 2.40, lotSize: 100, currency: '$', market: 'GLOBAL' }
 ];
 
 export const TradeLabHeader: React.FC<TradeLabHeaderProps> = ({
@@ -37,20 +53,25 @@ export const TradeLabHeader: React.FC<TradeLabHeaderProps> = ({
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [marketFilter, setMarketFilter] = useState<'ALL' | 'NSE' | 'GLOBAL'>('ALL');
 
   const changePct = environment.changePercent ?? 2.01;
   const isPositive = changePct >= 0;
 
-  const filteredSymbols = POPULAR_SYMBOLS.filter(s =>
-    s.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredSymbols = POPULAR_SYMBOLS.filter(s => {
+    const matchesMarket = marketFilter === 'ALL' || s.market === marketFilter;
+    const matchesQuery = s.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (s.name && s.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesMarket && matchesQuery;
+  });
 
-  const handleSelectSymbol = (item: typeof POPULAR_SYMBOLS[0]) => {
+  const handleSelectSymbol = (item: MarketSymbol) => {
     onChangeEnvironment({
       ...environment,
       symbol: item.symbol,
       spotPrice: item.spot,
-      changePercent: item.change
+      changePercent: item.change,
+      currency: item.currency
     });
     setIsSearchOpen(false);
     setSearchQuery('');
@@ -102,17 +123,54 @@ export const TradeLabHeader: React.FC<TradeLabHeaderProps> = ({
                 onClick={() => setIsSearchOpen(false)}
               />
               <div className="absolute top-full left-0 mt-1.5 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 animate-in fade-in zoom-in-95 duration-100">
-                <div className="p-1.5 pb-2">
+                <div className="p-1.5 pb-2 border-b border-slate-100 flex flex-col gap-2">
                   <div className="relative">
                     <Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />
                     <input
                       type="text"
-                      placeholder="Search index or stock (e.g. NIFTY, TCS)"
+                      placeholder="Search index or stock (e.g. NIFTY, SPX, AAPL)"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       autoFocus
                       className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
                     />
+                  </div>
+
+                  {/* Market Filter Segmented Control */}
+                  <div className="grid grid-cols-3 gap-1 bg-slate-100 p-0.5 rounded-lg text-[11px] font-medium">
+                    <button
+                      type="button"
+                      onClick={() => setMarketFilter('ALL')}
+                      className={`py-1 rounded-md transition-colors cursor-pointer text-center ${
+                        marketFilter === 'ALL'
+                          ? 'bg-white text-slate-900 font-semibold shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMarketFilter('NSE')}
+                      className={`py-1 rounded-md transition-colors cursor-pointer text-center ${
+                        marketFilter === 'NSE'
+                          ? 'bg-white text-blue-700 font-semibold shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      NSE (India)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMarketFilter('GLOBAL')}
+                      className={`py-1 rounded-md transition-colors cursor-pointer text-center ${
+                        marketFilter === 'GLOBAL'
+                          ? 'bg-white text-emerald-700 font-semibold shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Global (US)
+                    </button>
                   </div>
                 </div>
 
@@ -125,16 +183,28 @@ export const TradeLabHeader: React.FC<TradeLabHeaderProps> = ({
                         key={item.symbol}
                         type="button"
                         onClick={() => handleSelectSymbol(item)}
-                        className={`w-full px-3 py-2 flex items-center justify-between text-left text-xs hover:bg-slate-50 rounded-lg transition-colors ${
+                        className={`w-full px-3 py-2 flex items-center justify-between text-left text-xs hover:bg-slate-50 rounded-lg transition-colors cursor-pointer ${
                           isSelected ? 'bg-blue-50/70 font-semibold text-blue-900' : 'text-slate-800'
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          <span>{item.symbol}</span>
-                          {isSelected && <Check size={13} className="text-blue-600" />}
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-slate-900">{item.symbol}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              Lot {item.lotSize}
+                            </span>
+                            {isSelected && <Check size={13} className="text-blue-600" />}
+                          </div>
+                          {item.name && (
+                            <span className="text-[10px] text-slate-500 truncate max-w-[140px]">
+                              {item.name}
+                            </span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2 font-mono">
-                          <span>₹{item.spot.toLocaleString()}</span>
+                        <div className="flex items-center gap-2 font-mono shrink-0">
+                          <span className="font-semibold text-slate-900">
+                            {item.currency}{item.spot.toLocaleString()}
+                          </span>
                           <span className={pos ? 'text-emerald-600 font-medium' : 'text-rose-600 font-medium'}>
                             {pos ? `+${item.change}%` : `${item.change}%`}
                           </span>

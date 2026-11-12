@@ -72,6 +72,21 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
+android.applicationVariants.all { variant ->
+    if (variant.name == "debug") {
+        tasks.named("assembleDebug").configure {
+            doLast {
+                def targetDir = file("${rootDir}/app/build/outputs/apk/debug")
+                targetDir.mkdirs()
+                copy {
+                    from file("${buildDir}/outputs/apk/debug/app-debug.apk")
+                    into targetDir
+                }
+            }
+        }
+    }
+}
+
 try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {
